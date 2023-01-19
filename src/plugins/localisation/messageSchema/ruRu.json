@@ -1,0 +1,17 @@
+{
+  "base": {
+    "registration": "Регистрация",
+    "login": "Вход",
+    "email": "Email",
+    "password": "Пароль",
+    "password_confirm": "Повторите пароль",
+    "name": "Имя",
+    "confirm_code": "Код подтверждения"
+  },
+  "placeholder": {
+    "email": "введите email...",
+    "password": "введите пароль...",
+    "password_confirm": "повторите пароль...",
+    "name": "введите имя..."
+  }
+}

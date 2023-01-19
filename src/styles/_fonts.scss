@@ -1,0 +1,31 @@
+$fontPath: '@/assets/fonts/';
+
+@font-face {
+  font-family: 'Mulish';
+  src: local('Mulish Regular'),
+  local('Mulish-Regular'),
+  url('#{$fontPath}Mulish-Regular.woff') format('woff'),
+  url('#{$fontPath}Mulish-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Mulish';
+  src: local('Mulish Medium'),
+  local('Mulish-Medium'),
+  url('#{$fontPath}Mulish-Medium.woff') format('woff'),
+  url('#{$fontPath}Mulish-Medium.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Mulish';
+  src: local('Mulish Bold'),
+  local('Mulish-Bold'),
+  url('#{$fontPath}Mulish-Bold.woff') format('woff'),
+  url('#{$fontPath}Mulish-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+}

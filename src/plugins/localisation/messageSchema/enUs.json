@@ -1,0 +1,17 @@
+{
+  "base": {
+    "registration": "EN}Регистрация",
+    "login": "EN|Вход",
+    "email": "EN|Email",
+    "password": "EN|Пароль",
+    "password_confirm": "EN|Повторите пароль",
+    "name": "EN|Имя",
+    "confirm_code": "EN|Код подтверждения"
+  },
+  "placeholder": {
+    "email": "EN|введите email...",
+    "password": "EN|введите пароль...",
+    "password_confirm": "EN|повторите пароль...",
+    "name": "EN|введите имя..."
+  }
+}
