@@ -5,11 +5,13 @@ import {
   defineProps,
   withDefaults,
   Transition,
+  ref,
 } from "vue";
 
 /* Composition */
 // import you composition api...
 import useModel from "@/composition/model";
+import useDropDown from "@/composition/dropDown";
 
 /* Components */
 // import you components...
@@ -60,13 +62,15 @@ const props = withDefaults(defineProps<Props>(), {
 /* Emits */
 const emit = defineEmits<Emit>();
 
+/* Data */
+// declare reactive variables...
+const content = ref<HTMLDivElement | null>(null);
+
 /* Composition */
 // declare you composition api...
 const modelShow = useModel(props, emit, "show");
 const modelSelectValue = useModel(props, emit, "selectValue");
-
-/* Data */
-// declare reactive variables...
+const open = useDropDown(content, modelShow);
 
 /* Life hooks */
 // life cycle hooks...
@@ -188,8 +192,8 @@ function outsideHandler() {
 </script>
 
 <template>
-  <div v-if="modelShow" class="options-wrapper" v-outside="outsideHandler">
-    <ul class="select-options">
+  <div v-outside="outsideHandler" class="options-wrapper">
+    <ul ref="content" v-if="open" class="select-options">
       <li
         v-for="(opt, index) in options"
         :key="index"
@@ -222,8 +226,6 @@ $max-height-options: v-bind(maxHeightOptions);
   outline: 1px solid $light-text-body-secondary;
   border-radius: 0 0 8px 8px;
   list-style: none;
-  height: auto;
-  overflow-y: auto;
   &__item {
     padding: 16px 16px;
     background-color: $light-background-primary;
