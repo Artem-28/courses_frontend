@@ -8,7 +8,6 @@ import useModel from "@/composition/model";
 import useInputMessage from "@/composition/inputMessage";
 import useToggle from "@/composition/toggle";
 import useDropDown from "@/composition/dropDown";
-import { prop } from "vue-class-component";
 
 /* Components */
 // import you components...
