@@ -1,12 +1,10 @@
 import { ref } from "vue";
 
-function useToggle(value = false, callback?: (arg: boolean) => void) {
+function useToggle(value = false, lock = false) {
   const isToggle = ref<boolean>(value);
   function toggle() {
+    if (lock) return;
     isToggle.value = !isToggle.value;
-    if (callback) {
-      callback(isToggle.value);
-    }
   }
 
   return { isToggle, toggle };

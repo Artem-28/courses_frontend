@@ -1,22 +1,32 @@
 <script setup lang="ts">
 import { computed, defineEmits, defineProps, ref, withDefaults } from "vue";
+import isEqual from "@/helpers/isEqual";
 
 /* Composition */
 // import you composition api...
 import useModel from "@/composition/model";
 import useInputMessage from "@/composition/inputMessage";
 import useToggle from "@/composition/toggle";
+import useDropDown from "@/composition/dropDown";
+import { prop } from "vue-class-component";
 
 /* Components */
 // import you components...
-import SelectOptions from "@/components/ui/UiSelect/components/SelectOptions.vue";
 
 /* Types */
 // declare components component...
 interface OptionObject {
   [key: string]: string;
 }
-type Option = string | null | OptionObject;
+interface SelectOption {
+  value: Option;
+  label: string;
+  prop: number | string;
+}
+interface SelectedMap {
+  [key: string | number]: SelectOption;
+}
+type Option = string | OptionObject;
 type SelectValue =
   | string
   | string[]
@@ -29,11 +39,11 @@ type SelectValue =
 interface Props {
   value: SelectValue;
   options: Option[];
-  keyProp?: string;
   keyLabel?: string;
   keyValue?: string;
   disabled?: boolean;
   label?: string;
+  placeholder?: string;
   error?: boolean;
   dense?: boolean;
   outline?: boolean;
@@ -43,6 +53,9 @@ interface Props {
   multiple?: boolean;
   clickMethodBefore?: () => void;
   cleanable?: boolean;
+  hideDropdownIcon?: boolean;
+  optionHeight?: string | number;
+  transitionDuration?: number;
 }
 interface Emit {
   (e: "update:value", value: Option): void;
@@ -54,21 +67,26 @@ const props = withDefaults(defineProps<Props>(), {
   value: "",
   disabled: false,
   error: false,
-  keyProp: "value",
   keyLabel: "label",
+  hideDropdownIcon: false,
 });
 
 /* Emits */
 const emit = defineEmits<Emit>();
 
+/* Data */
+// declare reactive variables...
+const optionsContainer = ref<HTMLDivElement | null>(null);
+
 /* Composition */
 // declare you composition api...
 const model = useModel(props, emit, "value");
 const { message, showMessage } = useInputMessage(props);
-const { isToggle, toggle } = useToggle();
-
-/* Data */
-// declare reactive variables...
+const { isToggle, toggle } = useToggle(false, props.disabled);
+const open = useDropDown(optionsContainer, isToggle, {
+  maxHeight: props.optionHeight,
+  duration: props.transitionDuration,
+});
 
 /* Life hooks */
 // life cycle hooks...
@@ -101,73 +119,142 @@ const isClickableSlot = computed(() => {
   };
 });
 
-// Строковое значение label для отображения
-const optionLabelString = computed((): string => {
-  // Если не передан keyValue то отображаем значение без изменений
-  if (!props.keyValue) return model.value;
-  // Ищим значение для отображения из опций
-  return getOptionLabelByValue(model.value);
+const showPlaceholder = computed((): boolean => {
+  const isSelectedValue = !!Object.keys(selectedOptionMap.value).length;
+  return !isSelectedValue && !!props.placeholder;
 });
-
-// Строковое значение label для множества выбранных значений
-const optionLabelMultiple = computed((): string => {
-  if (!Array.isArray(model.value)) return "";
-  const labels = model.value.reduce((acc, current) => {
-    if (!current) return acc;
-
-    if (typeof current === "object") {
-      acc.push(current[props.keyLabel]);
-      return acc;
-    }
-    acc.push(getOptionLabelByValue(current));
-    return acc;
-  }, [] as string[]);
+// Строковое значение лейблов выбранных опций
+const optionLabel = computed((): string => {
+  const selectedOptions = selectedOptionMap.value as SelectedMap;
+  const labels = Object.values(selectedOptions).map((opt) => opt.label);
   return labels.join(", ");
 });
 
-const optionLabel = computed((): string => {
-  if (!model.value) return "";
-  if (props.multiple) {
-    return optionLabelMultiple.value;
+// Мапа выбранных опций
+const selectedOptionMap = computed(() => {
+  if (!model.value) return {};
+
+  // Если значение является массивом
+  if (Array.isArray(model.value)) {
+    return model.value.reduce((acc, current) => {
+      const option = getSelectOptionByValue(current);
+      if (!option) return acc;
+      acc[option.prop] = option;
+      return acc;
+    }, {} as SelectedMap);
   }
-  if (typeof model.value === "object") {
-    return model.value[props.keyLabel];
-  }
-  return optionLabelString.value;
+  // Если является объектом
+  const option = getSelectOptionByValue(model.value);
+  if (!option) return {};
+  return { [option.prop]: option };
+});
+
+// Приводим опции к единому виду
+const selectOptions = computed(() => {
+  return props.options.reduce((acc, current, index) => {
+    // Если опция является неопределена
+    if (!current) return acc;
+    // Если опция является объектом
+    if (typeof current === "object") {
+      acc.push(transformObjectIntoOption(current, index));
+      return acc;
+    }
+    // Если опция является строкой
+    acc.push(transformStringIntoOption(current, index));
+    return acc;
+  }, [] as SelectOption[]);
 });
 
 /* Methods */
 // promote your methods...
-// Получение label из опций для отображения
-function getOptionLabelByValue(value: string): string {
-  const options = props.options;
-  const option = options.find((opt) => {
-    if (typeof opt === "string") {
-      return opt === value;
-    }
-    return opt && opt[props.keyProp] === value;
-  });
+// Получение опции по переданному значению
+function getSelectOptionByValue(value: Option) {
+  if (!value) return null;
+  return selectOptions.value.find((opt) => isEqual(opt.value, value));
+}
 
-  if (!option) return "";
+// Трансвормирование объекта в опцию
+function transformObjectIntoOption(
+  option: OptionObject,
+  index: number
+): SelectOption {
+  return {
+    label: option[props.keyLabel],
+    value: props.keyValue ? option[props.keyValue] : option,
+    prop: index,
+  };
+}
 
-  if (typeof option === "string") {
-    return option;
+// Трансформирование строки в опцию
+function transformStringIntoOption(option: string, index: number) {
+  return {
+    label: option,
+    value: option,
+    prop: index,
+  };
+}
+
+// Обработчик выбора элемента опции
+function handlerSelectItem(option: SelectOption): void {
+  // Если опция уже выбрана
+  if (isActiveOption(option.prop)) {
+    removeValueHandler(option.prop);
+    return;
   }
 
-  return option[props.keyLabel];
+  // Если мультисклкт
+  if (props.multiple) {
+    updateValueMultiple(option.value);
+    return;
+  }
+  model.value = option.value;
+  toggle();
 }
+
+// Обновление значений мультиселект
+function updateValueMultiple(optionValue: Option) {
+  if (Array.isArray(model.value)) {
+    model.value.push(optionValue);
+    return;
+  }
+  model.value = [optionValue];
+}
+
+// Обработчик удаления выбранной опции
+function removeValueHandler(propKey: string | number) {
+  const selectedOptions = { ...selectedOptionMap.value } as SelectedMap;
+  delete selectedOptions[propKey];
+  const values = Object.values(selectedOptions).map((opt) => opt.value);
+  if (props.multiple) {
+    model.value = values;
+    return;
+  }
+  if (!values.length) {
+    model.value = null;
+  }
+  const [value] = values;
+  model.value = value;
+}
+
+// Проверяет является ли опция активной
+function isActiveOption(propKey: string | number) {
+  return Object.prototype.hasOwnProperty.call(selectedOptionMap.value, propKey);
+}
+// Удаление всех выбранных значений
 function clearValue() {
-  isToggle.value = false;
   if (props.multiple) {
     model.value = [];
     return;
   }
   model.value = null;
 }
+function outsideHandler() {
+  isToggle.value = false;
+}
 </script>
 
 <template>
-  <div class="ui-select" :class="classes">
+  <div v-outside="outsideHandler" class="ui-select" :class="classes">
     <label v-if="label" class="ui-select__label" v-text="label" />
     <div class="ui-select__control">
       <slot name="before">
@@ -178,6 +265,11 @@ function clearValue() {
         />
       </slot>
       <div class="control" @click.stop="toggle">
+        <span
+          v-if="showPlaceholder"
+          class="control__placeholder"
+          v-text="placeholder"
+        />
         <span v-text="optionLabel" />
       </div>
       <div class="actions">
@@ -188,6 +280,7 @@ function clearValue() {
           @click.stop="clearValue"
         />
         <ui-icon
+          v-if="!hideDropdownIcon"
           name="arrow_down"
           class="clickable"
           :class="{ rotate: isToggle }"
@@ -195,15 +288,19 @@ function clearValue() {
         />
       </div>
     </div>
-    <select-options
-      v-model:show="isToggle"
-      v-model:select-value="model"
-      :key-prop="keyProp"
-      :key-label="keyLabel"
-      :key-value="keyValue"
-      :multiple="multiple"
-      :list="options"
-    />
+    <div class="ui-select__options">
+      <ul ref="optionsContainer" v-if="open" class="options">
+        <li
+          v-for="option in selectOptions"
+          :key="option.prop"
+          class="options__item"
+          :class="{ active: isActiveOption(option.prop) }"
+          @click="handlerSelectItem(option)"
+        >
+          <span v-text="option.label" />
+        </li>
+      </ul>
+    </div>
     <div v-if="showMessage" class="ui-select__message">
       <ui-icon
         name="notice"
@@ -234,9 +331,8 @@ function clearValue() {
   }
   &__control {
     position: relative;
-    z-index: 10;
-    height: 56px;
-    padding: 0 16px;
+    z-index: 20;
+    padding: 16px;
     display: flex;
     gap: 16px;
     border-radius: 8px;
@@ -244,6 +340,12 @@ function clearValue() {
     outline: 1px solid transparent;
     background-color: $light-background-primary;
     transition: all 0.2s;
+  }
+  &__options {
+    position: relative;
+    height: 0;
+    width: 100%;
+    bottom: 5px;
   }
   &__message {
     position: absolute;
@@ -269,15 +371,42 @@ function clearValue() {
     font-style: normal;
     font-weight: 400;
     font-size: 16px;
-    line-height: 120%;
+    line-height: 100%;
     color: $light-text-title;
-  }
-  .control::placeholder {
-    color: $light-text-body-secondary;
+    &__placeholder {
+      color: $light-text-body-secondary;
+    }
   }
   .actions {
     display: flex;
     flex-wrap: nowrap;
+  }
+}
+.options {
+  position: absolute;
+  width: 100%;
+  outline: 1px solid $light-text-body-secondary;
+  border-radius: 0 0 8px 8px;
+  list-style: none;
+  z-index: 10;
+  &__item {
+    padding: 16px 16px;
+    background-color: $light-background-primary;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  &__item:not(:last-child) {
+    border-bottom: 1px solid $light-background-primary;
+  }
+  &__item.active {
+    background-color: $light-primary-10;
+    color: $light-primary-50;
+  }
+  &__item:not(.active):hover {
+    background-color: $light-progress;
+  }
+  &__item:first-child {
+    padding-top: 21px;
   }
 }
 .outline {
@@ -308,9 +437,15 @@ function clearValue() {
   .control {
     color: $light-text-body-primary;
     cursor: not-allowed;
+    &__placeholder {
+      color: $light-text-body-secondary;
+    }
   }
-  .control::placeholder {
-    color: $light-text-body-secondary;
+  .clickable {
+    cursor: not-allowed;
+    &:hover {
+      color: $light-text-body-secondary;
+    }
   }
 }
 .dense {

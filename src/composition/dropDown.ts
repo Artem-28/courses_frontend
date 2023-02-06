@@ -14,7 +14,7 @@ interface DropdownConfig {
 
 function useDropDown(
   el: Ref<HTMLDivElement | null> | null,
-  model: WritableComputedRef<boolean>,
+  model: Ref<boolean>,
   config: DropdownConfig = {}
 ) {
   const open = ref(false);
