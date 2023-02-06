@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import UiSelect from "@/components/ui/UiSelect/UiSelect.vue";
 import useToggle from "@/composition/toggle";
-import { computed, reactive, ref } from "vue";
-import UiChip from "@/components/ui/UiChip/UiChip.vue";
-
+import { ref, reactive } from "vue";
 /* Composition */
 // import you composition api...
 
@@ -20,7 +17,6 @@ import UiChip from "@/components/ui/UiChip/UiChip.vue";
 
 /* Composition */
 // declare you composition api...
-const { isToggle, toggle } = useToggle();
 
 /* Data */
 // declare reactive variables...
@@ -28,26 +24,18 @@ const email = ref(null);
 const password = ref(null);
 const error = ref(false);
 const selectValue = ref(null);
-const selectOptions = [
-  "option 1",
-  "option 2",
-  "option 3",
-  "option 4",
-  "option 5",
-];
+
 const selectOptionsObject = [
   { label: "option 1", value: "opt 1" },
   { label: "option 2", value: "opt 2" },
   { label: "option 3", value: "opt 3" },
   { label: "option 4", value: "opt 5" },
   { label: "option 5", value: "opt 6" },
-];
-const selectOptionsCustomLabel = [
-  { name: "option 1", value: 1 },
-  { name: "option 2", value: 2 },
-  { name: "option 3", value: 3 },
-  { name: "option 4", value: 4 },
-  { name: "option 5", value: 5 },
+  { label: "option 6", value: "opt 7" },
+  { label: "option 7", value: "opt 8" },
+  { label: "option 8", value: "opt 9" },
+  { label: "option 9", value: "opt 10" },
+  { label: "option 10", value: "opt 11" },
 ];
 
 const chips = reactive({
@@ -87,9 +75,10 @@ const chips = reactive({
     <ui-select
       v-model:value="selectValue"
       :label="$t('base.password')"
-      key-label="name"
-      key-value="value"
-      :options="selectOptionsCustomLabel"
+      :placeholder="$t('placeholder.password')"
+      cleanable
+      multiple
+      :options="selectOptionsObject"
       outline
     />
     <pre>{{ chips }}</pre>
