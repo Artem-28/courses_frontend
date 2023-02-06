@@ -70,7 +70,7 @@ const content = ref<HTMLDivElement | null>(null);
 // declare you composition api...
 const modelShow = useModel(props, emit, "show");
 const modelSelectValue = useModel(props, emit, "selectValue");
-const open = useDropDown(content, modelShow);
+const open = useDropDown(content, modelShow, { duration: 100 });
 
 /* Life hooks */
 // life cycle hooks...

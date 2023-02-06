@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import UiSelect from "@/components/ui/UiSelect/UiSelect.vue";
 import useToggle from "@/composition/toggle";
-import UiIcon from "@/components/ui/UiIcon/UiIcon.vue";
+import { computed, reactive, ref } from "vue";
+import UiChip from "@/components/ui/UiChip/UiChip.vue";
 
 /* Composition */
 // import you composition api...
@@ -50,6 +50,11 @@ const selectOptionsCustomLabel = [
   { name: "option 5", value: 5 },
 ];
 
+const chips = reactive({
+  first: false,
+  second: false,
+});
+
 /* Life hooks */
 // life cycle hooks...
 
@@ -62,7 +67,6 @@ const selectOptionsCustomLabel = [
 
 <template>
   <form @submit.prevent class="form-login">
-    <ui-icon name="twitter" />
     <ui-input
       v-model="email"
       name="email"
@@ -88,7 +92,20 @@ const selectOptionsCustomLabel = [
       :options="selectOptionsCustomLabel"
       outline
     />
-    <pre>{{ selectValue }}</pre>
+    <pre>{{ chips }}</pre>
+    <ui-chip
+      v-model:selected="chips.first"
+      label="Add to calendar"
+      icon-right="info"
+      icon-left="info"
+      removable
+    />
+    <ui-chip
+      v-model:selected="chips.second"
+      label="Add to calendar"
+      icon-right="info"
+      icon-left="info"
+    />
   </form>
 </template>
 

@@ -12,6 +12,7 @@ import UiTabsPanel from "@/components/ui/UiTabsPanel/UiTabsPanel.vue";
 import UiIcon from "@/components/ui/UiIcon/UiIcon.vue";
 import UiInput from "@/components/ui/UiInput/UiInput.vue";
 import UiInputCode from "@/components/ui/UIInputCode/UiInputCode.vue";
+import UiChip from "@/components/ui/UiChip/UiChip.vue";
 import UiSelect from "@/components/ui/UiSelect/UiSelect.vue";
 
 const app = createApp(App);
@@ -23,5 +24,6 @@ app.component("UiTabsPanel", UiTabsPanel);
 app.component("UiIcon", UiIcon);
 app.component("UiInput", UiInput);
 app.component("UiInputCode", UiInputCode);
+app.component("UiChip", UiChip);
 app.component("UiSelect", UiSelect);
 app.mount("#app");
