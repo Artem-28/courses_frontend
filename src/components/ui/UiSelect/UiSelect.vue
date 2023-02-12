@@ -46,6 +46,7 @@ interface Props {
   error?: boolean;
   dense?: boolean;
   outline?: boolean;
+  useChip?: boolean;
   errorMessage?: string;
   hintMessage?: string;
   beforeIcon?: string;
@@ -269,7 +270,8 @@ function outsideHandler() {
           class="control__placeholder"
           v-text="placeholder"
         />
-        <span v-text="optionLabel" />
+        <div v-if="useChip" class="control__chip-container">chip</div>
+        <span v-else v-text="optionLabel" />
       </div>
       <div class="actions">
         <ui-icon

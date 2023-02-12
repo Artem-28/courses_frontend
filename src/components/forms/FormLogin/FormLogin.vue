@@ -39,8 +39,14 @@ const selectOptionsObject = [
 ];
 
 const chips = reactive({
-  first: false,
-  second: false,
+  first: {
+    selected: false,
+    visible: true,
+  },
+  second: {
+    selected: false,
+    visible: true,
+  },
 });
 
 /* Life hooks */
@@ -83,17 +89,22 @@ const chips = reactive({
     />
     <pre>{{ chips }}</pre>
     <ui-chip
-      v-model:selected="chips.first"
+      v-model:selected="chips.first.selected"
+      v-model="chips.first.visible"
       label="Add to calendar"
       icon-right="info"
       icon-left="info"
       removable
+      dense
+      outline
     />
     <ui-chip
-      v-model:selected="chips.second"
+      v-model:selected="chips.second.selected"
+      v-model="chips.second.visible"
       label="Add to calendar"
       icon-right="info"
       icon-left="info"
+      outline
     />
   </form>
 </template>

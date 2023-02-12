@@ -15,6 +15,10 @@ interface Props {
   selected?: boolean;
   removable?: boolean;
   clickable?: boolean;
+  disabled?: boolean;
+  outline?: boolean;
+  square?: boolean;
+  dense?: boolean;
   label?: string;
   color?: string;
   iconLeft?: string;
@@ -45,6 +49,7 @@ const emit = defineEmits<Emit>();
 /* Composition */
 // declare you composition api...
 const isSelect = useModel(props, emit, "selected");
+const isVisible = useModel(props, emit);
 
 /* Life hooks */
 // life cycle hooks...
@@ -64,6 +69,14 @@ const transformColor = computed(() => {
   }
 });
 
+const textColor = computed(() => {
+  let color = "#FFFFFF";
+  if (props.outline) {
+    color = transformColor.value;
+  }
+  return color;
+});
+const iconSize = computed(() => (props.dense ? 19 : 21));
 const icon = computed(() => {
   const icon = {
     left: props.iconLeft,
@@ -72,9 +85,6 @@ const icon = computed(() => {
   if (isSelect.value) {
     icon.left = props.iconSelected;
   }
-  if (props.removable) {
-    icon.right = props.iconRemove;
-  }
   return icon;
 });
 
@@ -82,76 +92,120 @@ const isClickable = computed(() => {
   return props.clickable || props.selected !== undefined;
 });
 
-const classes = computed(() => ({ clickable: isClickable.value }));
+const classes = computed(() => ({
+  clickable: isClickable.value,
+  disabled: props.disabled,
+  outline: props.outline,
+  square: props.square,
+  dense: props.dense,
+}));
 
 /* Methods */
 // promote your methods...
 function clickHandler() {
+  if (props.disabled) return;
   if (props.selected !== undefined) {
     selectHandler();
   }
 }
 function selectHandler() {
+  if (props.disabled) return;
   isSelect.value = !isSelect.value;
 }
 function removeHandler(event: Event) {
+  if (props.disabled) return;
   event.stopPropagation();
+  isVisible.value = !isVisible.value;
 }
 function iconRightClickHandler(event: Event) {
-  if (props.removable) {
-    removeHandler(event);
-  }
+  console.log(event);
 }
 </script>
 
 <template>
-  <div class="ui-chip" :class="classes" @click="clickHandler">
-    <ui-icon
-      v-if="icon.left"
-      :name="icon.left"
-      :size="20"
-      class="ui-chip__icon"
-    />
-    <div class="ui-chip__label">
-      <span v-text="label" />
-    </div>
-    <ui-icon
-      v-if="icon.right"
-      :name="icon.right"
-      :size="16"
-      class="ui-chip__icon"
-      :class="{ removable }"
-      @click="iconRightClickHandler"
-    />
+  <div v-if="isVisible" class="ui-chip" :class="classes" @click="clickHandler">
+    <slot>
+      <ui-icon
+        v-if="icon.left"
+        :name="icon.left"
+        :size="iconSize"
+        class="ui-chip__icon"
+      />
+      <div class="ui-chip__label">
+        <span v-text="label" />
+      </div>
+      <ui-icon
+        v-if="icon.right"
+        :name="icon.right"
+        :size="iconSize"
+        class="ui-chip__icon"
+        @click="iconRightClickHandler"
+      />
+      <ui-icon
+        v-if="removable"
+        :name="iconRemove"
+        :size="iconSize"
+        class="ui-chip__icon remove-icon"
+        :class="{ removable }"
+        @click="removeHandler"
+      />
+    </slot>
   </div>
 </template>
 
 <style scoped lang="scss">
 /* Variables */
 // declare you variables scss...
-$background-color: v-bind(transformColor);
+$color: v-bind(transformColor);
+$text-color: v-bind(textColor);
 
 /* Selector */
 // style component...
 .ui-chip {
   width: fit-content;
-  background-color: $background-color;
-  color: white;
-  margin: 4px;
-  padding: 0 12px;
+  height: 28px;
+  background-color: $color;
+  color: $text-color;
+  padding: 0 8px;
   border-radius: 16px;
+  margin: 4px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
   &__icon {
-    color: white;
+    color: $text-color;
   }
   &__label {
-    padding: 7px 0;
     font-size: 14px;
+  }
+}
+.remove-icon {
+  opacity: 0.6;
+  transition: all 0.2s;
+  &:hover {
+    opacity: 1;
   }
 }
 .clickable {
   cursor: pointer;
+}
+.dense.ui-chip {
+  height: 21px;
+  padding: 0 2px;
+  gap: 2px;
+}
+.disabled.ui-chip {
+  opacity: 0.6;
+  cursor: not-allowed;
+  .remove-icon:hover {
+    opacity: 0.6;
+  }
+}
+.outline.ui-chip {
+  background-color: transparent;
+  outline: 1px solid currentColor;
+}
+.square.ui-chip {
+  border-radius: 4px;
 }
 </style>
