@@ -8,7 +8,6 @@ import useModel from "@/composition/model";
 import useInputMessage from "@/composition/inputMessage";
 import useToggle from "@/composition/toggle";
 import useDropDown from "@/composition/dropDown";
-import { prop } from "vue-class-component";
 
 /* Components */
 // import you components...
@@ -47,6 +46,7 @@ interface Props {
   error?: boolean;
   dense?: boolean;
   outline?: boolean;
+  useChip?: boolean;
   errorMessage?: string;
   hintMessage?: string;
   beforeIcon?: string;
@@ -111,6 +111,7 @@ const classes = computed(() => {
     error: props.error,
     disabled: props.disabled,
     dense: props.dense,
+    "use-chip": props.useChip,
   };
 });
 const isClickableSlot = computed(() => {
@@ -270,19 +271,28 @@ function outsideHandler() {
           class="control__placeholder"
           v-text="placeholder"
         />
-        <span v-text="optionLabel" />
+        <div v-if="useChip" class="control__chip-container">
+          <ui-chip
+            v-for="(option, key) in selectedOptionMap"
+            :key="key"
+            :label="option.label"
+            removable
+            @update:modelValue="removeValueHandler(key)"
+          />
+        </div>
+        <span v-else v-text="optionLabel" />
       </div>
       <div class="actions">
         <ui-icon
           v-if="displayClearBtn"
           name="cancel_round"
-          class="clickable"
+          class="actions__icon clickable"
           @click.stop="clearValue"
         />
         <ui-icon
           v-if="!hideDropdownIcon"
           name="arrow_down"
-          class="clickable"
+          class="actions__icon clickable"
           :class="{ rotate: isToggle }"
           @click.stop="toggle"
         />
@@ -363,6 +373,7 @@ function outsideHandler() {
     }
   }
   .control {
+    min-height: 36px;
     height: 100%;
     width: 100%;
     flex-grow: 1;
@@ -376,10 +387,26 @@ function outsideHandler() {
     &__placeholder {
       color: $light-text-body-secondary;
     }
+    &__chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+    }
   }
   .actions {
     display: flex;
     flex-wrap: nowrap;
+    &__icon {
+      transition: all 0.2s;
+    }
+    &__icon:hover {
+      color: $light-primary-50;
+    }
+  }
+}
+.ui-select.use-chip {
+  .ui-select__control {
+    padding: 10px 16px;
   }
 }
 .options {
@@ -468,10 +495,6 @@ function outsideHandler() {
 }
 .clickable {
   cursor: pointer;
-  transition: all 0.2s;
-  &:hover {
-    color: $light-primary-50;
-  }
 }
 .rotate {
   transform: rotate(180deg);

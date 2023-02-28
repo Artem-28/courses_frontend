@@ -25,11 +25,11 @@ const props = withDefaults(defineProps<Props>(), {
 /* Emits */
 const emit = defineEmits<Emit>();
 
-/* Composition */
-// declare you composition api...
-
 /* Data */
 // declare reactive variables...
+
+/* Composition */
+// declare you composition api...
 
 /* Life hooks */
 // life cycle hooks...

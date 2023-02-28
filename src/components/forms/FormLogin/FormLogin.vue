@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from "vue";
-
 /* Composition */
 // import you composition api...
 
@@ -20,24 +19,8 @@ import { ref } from "vue";
 
 /* Data */
 // declare reactive variables...
-const email = ref("artem@mail.ru");
+const email = ref(null);
 const password = ref(null);
-const error = ref(false);
-const selectValue = ref(null);
-
-const selectOptionsObject = [
-  { label: "option 1", value: "opt 1" },
-  { label: "option 2", value: "opt 2" },
-  { label: "option 3", value: "opt 3" },
-  { label: "option 4", value: "opt 5" },
-  { label: "option 5", value: "opt 6" },
-  { label: "option 6", value: "opt 7" },
-  { label: "option 7", value: "opt 8" },
-  { label: "option 8", value: "opt 9" },
-  { label: "option 9", value: "opt 10" },
-  { label: "option 10", value: "opt 11" },
-];
-
 /* Life hooks */
 // life cycle hooks...
 
@@ -64,16 +47,6 @@ const selectOptionsObject = [
       :label="$t('base.password')"
       :placeholder="$t('placeholder.password')"
       error-message="Error message"
-      :error="error"
-      outline
-    />
-    <ui-select
-      v-model:value="selectValue"
-      :label="$t('base.password')"
-      :placeholder="$t('placeholder.password')"
-      cleanable
-      multiple
-      :options="selectOptionsObject"
       outline
     />
   </form>
